@@ -295,17 +295,17 @@ Dieses Netzteil ist optimiert für:
 │                    RF-Verstärker-System                     │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐   │
-│  │  CSP-3000   │────▶│  Class-D    │────▶│  Matching   │   │
-│  │  250V PSU   │     │  Push-Pull  │     │  Network    │   │
-│  └─────────────┘     │  Amplifier  │     └──────┬──────┘   │
-│        ▲             └─────────────┘            │          │
-│        │                   ▲                    ▼          │
-│  ┌─────┴─────┐       ┌─────┴─────┐     ┌─────────────┐   │
-│  │  ESP32-S3 │       │  13.56MHz │     │    Load     │   │
-│  │  Control  │       │  Driver   │     │  (Plasma,   │   │
-│  └───────────┘       └───────────┘     │   Heater)   │   │
-│                                         └─────────────┘   │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐    │
+│  │  CSP-3000   │────▶│  Class-D    │────▶│  Matching  │    │
+│  │  250V PSU   │     │  Push-Pull  │     │  Network    │    │
+│  └─────────────┘     │  Amplifier  │     └──────┬──────┘    │
+│        ▲             └─────────────┘            │           │
+│        │                   ▲                    ▼           │
+│  ┌─────┴─────┐       ┌─────┴─────┐     ┌─────────────┐      │
+│  │  ESP32-S3 │       │  13.56MHz │     │    Load     │      │
+│  │  Control  │       │  Driver   │     │  (Plasma,   │      │
+│  └───────────┘       └───────────┘     │   Heater)   │      │
+│                                        └─────────────┘      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -313,3 +313,4 @@ Dieses Netzteil ist optimiert für:
 - Frequenz: 13.56 MHz ± 7 kHz
 - Lizenzfreies ISM-Band (Industrial, Scientific, Medical)
 - Typische Anwendungen: Plasma-Erzeugung, RF-Schweißen, Induktionsheizung
+
