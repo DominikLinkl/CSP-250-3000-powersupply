@@ -20,6 +20,14 @@ void applyOutputAndLog(const char* reason, bool clampToLimits);
 // max ampere meter
 static const int   ADC_PIN = 6;  
 
+/* ===================== Rotary-Encoder + PWM (früh definiert für remoteButtonTask) ===================== */
+constexpr int PIN_PWM    = 35;   // PWM-Ausgang zum 10V-Level-Shifter
+constexpr uint32_t PWM_FREQ_HZ  = 1000;
+constexpr uint8_t  PWM_RES_BITS = 12;     // 0..4095
+constexpr uint32_t PWM_MAX_DUTY = (1UL << PWM_RES_BITS) - 1;
+const uint8_t PSU_DUTY_MIN = 13;   // Minimum 13% (Netzteil geht nicht auf 0V)
+const uint8_t PSU_DUTY_MAX = 86;
+
 /*======================= Remote-Button (EIN/AUS) ===============================*/
 #define PIN_BTN 5    // Taster: nach 3.3 V (aktiv HIGH)
 #define PIN_OUT 15   // Ausgang: schaltet Netzteil ein/aus
@@ -45,11 +53,28 @@ void remoteButtonTask() {
     for (int i = 1; i <= 2; i++) {
       if (i == 2) {
         g_remoteState = !g_remoteState;
+        
+        // SICHERHEIT: Beim Einschalten IMMER auf minimale Spannung
+        if (g_remoteState) {
+          g_psuDutyPctFine = PSU_DUTY_MIN;
+          g_psuDutyPct = PSU_DUTY_MIN;
+          g_regulationActive = false;
+          g_targetVoltage = 0.0f;
+          
+          // PWM DIREKT setzen (bei invertiertem PWM: 13% PSU = 87% ESP)
+          uint32_t safePwm = (uint32_t)((100.0f - PSU_DUTY_MIN) / 100.0f * PWM_MAX_DUTY);
+          analogWrite(PIN_PWM, safePwm);
+          delay(100);  // PWM stabilisieren
+          
+          applyOutputAndLog("BTN-ON-SAFE", true);
+          delay(100);  // nochmal warten
+        }
+        
         digitalWrite(PIN_OUT, g_remoteState ? HIGH : LOW);
         digitalWrite(PIN_LED, g_remoteState ? HIGH : LOW);
 
         Serial.print("[REMOTE] Ausgang ist jetzt: ");
-        Serial.println(g_remoteState ? "HIGH" : "LOW");
+        Serial.println(g_remoteState ? "HIGH (Duty auf MIN)" : "LOW");
       }
       delay(30); 
     }
@@ -60,11 +85,30 @@ void remoteButtonTask() {
 
 // Funktion zum Setzen des PSU-Zustands (für Web-UI)
 void setPsuState(bool state) {
+  if (state) {
+    // SICHERHEIT: Beim Einschalten IMMER auf minimale Spannung (13% Duty)
+    g_psuDutyPctFine = PSU_DUTY_MIN;
+    g_psuDutyPct = PSU_DUTY_MIN;
+    
+    // Regelung deaktivieren damit nicht sofort hochgeregelt wird
+    g_regulationActive = false;
+    g_targetVoltage = 0.0f;
+    
+    // PWM DIREKT setzen (nicht über applyOutputAndLog, direkt zum Hardware-Register)
+    // Bei invertiertem PWM: 13% PSU = 87% ESP
+    uint32_t safePwm = (uint32_t)((100.0f - PSU_DUTY_MIN) / 100.0f * PWM_MAX_DUTY);
+    analogWrite(PIN_PWM, safePwm);
+    delay(100);  // PWM stabilisieren
+    
+    applyOutputAndLog("PSU-ON-SAFE", true);
+    delay(100);  // nochmal warten
+  }
+  
   g_remoteState = state;
   digitalWrite(PIN_OUT, g_remoteState ? HIGH : LOW);
   digitalWrite(PIN_LED, g_remoteState ? HIGH : LOW);
   Serial.print("[WEB] PSU Ausgang: ");
-  Serial.println(g_remoteState ? "EIN" : "AUS");
+  Serial.println(g_remoteState ? "EIN (Duty auf MIN)" : "AUS");
 }
 
 /* ===================== MAX22530 (SPI-ADC)  ===================== */
@@ -73,29 +117,22 @@ void setPsuState(bool state) {
 #define MISO_PIN  PIN_MISO
 #define SCK_PIN   PIN_SCK
 
-/* ===================== Rotary-Encoder + PWM ===================== */
-constexpr int PIN_PWM    = 35;   // PWM-Ausgang zum 10V-Level-Shifter
+/* ===================== Rotary-Encoder (restliche Pins) ===================== */
 constexpr int PIN_ENC_A  = 36;   // Rotary CLK (A)
 constexpr int PIN_ENC_B  = 37;   // Rotary DT  (B)
 constexpr int PIN_ENC_SW = 38;   // Rotary Button (aktiv LOW)
 
-constexpr uint32_t PWM_FREQ_HZ  = 1000;
-constexpr uint8_t  PWM_RES_BITS = 12;     // 0..4095
-constexpr uint32_t PWM_MAX_DUTY = (1UL << PWM_RES_BITS) - 1;
-
 bool g_outputInverted = true;  // PWM Invertierung (fest auf invertiert)
 constexpr uint8_t BTN_PSU_DUTY_PERCENT  = 100;
-
-const uint8_t PSU_DUTY_MIN = 13;   // Minimum 13% (Netzteil geht nicht auf 0V)
-const uint8_t PSU_DUTY_MAX = 86;
 
 // Encoder-Schrittweite
 constexpr float    DUTY_STEP_PERCENT = 0.50f;
 constexpr uint32_t ENC_SAMPLE_US     = 1000; // 1 ms
 
 // Feinwert (float) + gerundeter Int-Wert für Anzeige/Logs
-volatile float g_psuDutyPctFine = 50.0f; // interner feiner Duty-Wert
-volatile int   g_psuDutyPct     = 50;    // gerundeter Duty-Wert
+// SICHERHEIT: Immer auf Minimum starten!
+volatile float g_psuDutyPctFine = 13.0f; // interner feiner Duty-Wert (MIN=13%)
+volatile int   g_psuDutyPct     = 13;    // gerundeter Duty-Wert (MIN=13%)
 
 uint32_t       lastEncSampleUs = 0;
 int32_t        encAccum = 0;
@@ -677,7 +714,12 @@ void setup() {
 
   analogWriteResolution(PIN_PWM, PWM_RES_BITS);
   analogWriteFrequency(PIN_PWM, PWM_FREQ_HZ);
-  analogWrite(PIN_PWM, 0);
+  
+  // WICHTIG: Bei invertiertem PWM muss hoher ESP-Duty = niedriger PSU-Duty sein
+  // 13% PSU (minimum) = 87% ESP = ~3563 bei 12bit (4095 * 0.87)
+  uint32_t safeInitPwm = (uint32_t)((100.0f - PSU_DUTY_MIN) / 100.0f * PWM_MAX_DUTY);
+  analogWrite(PIN_PWM, safeInitPwm);
+  delay(50); // PWM stabilisieren lassen
 
   uint8_t a = digitalRead(PIN_ENC_A);
   uint8_t b = digitalRead(PIN_ENC_B);

@@ -589,7 +589,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
             String msg = String((char*)payload);
             Serial.printf("[WS] Received: %s\n", msg.c_str());
             
-            if (msg.indexOf("\"cmd\":\"setV\"") >= 0) {
+            if (msg.indexOf("setV") >= 0) {
                 // Zielspannung setzen
                 int valIdx = msg.indexOf("\"val\":");
                 if (valIdx >= 0) {
@@ -615,19 +615,21 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
                     }
                 }
             }
-            else if (msg.indexOf("\"cmd\":\"off\"") >= 0) {
+            else if (msg.indexOf("psuOn") >= 0) {
+                // PSU einschalten
+                Serial.println("[WS] psuOn command detected!");
+                setPsuState(true);
+            }
+            else if (msg.indexOf("psuOff") >= 0) {
+                // PSU ausschalten
+                Serial.println("[WS] psuOff command detected!");
+                setPsuState(false);
+            }
+            else if (msg.indexOf("\"off\"") >= 0) {
                 // Regelung deaktivieren
                 g_regulationActive = false;
                 g_targetVoltage = 0.0f;
                 Serial.println("[WEB] Regulation OFF");
-            }
-            else if (msg.indexOf("\"cmd\":\"psuOn\"") >= 0) {
-                // PSU einschalten
-                setPsuState(true);
-            }
-            else if (msg.indexOf("\"cmd\":\"psuOff\"") >= 0) {
-                // PSU ausschalten
-                setPsuState(false);
             }
             // toggleMode entfernt - beide Modi laufen parallel
             break;
