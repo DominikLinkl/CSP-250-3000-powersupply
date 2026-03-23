@@ -41,20 +41,25 @@ void remoteButtonSetup() {
 
 
 void remoteButtonTask() {
-  if (digitalRead(PIN_BTN) == HIGH) {
-    for (int i = 1; i <= 2; i++) {
-      if (i == 2) {
-        g_remoteState = !g_remoteState;
-        digitalWrite(PIN_OUT, g_remoteState ? HIGH : LOW);
-        digitalWrite(PIN_LED, g_remoteState ? HIGH : LOW);
+  static uint32_t lastBtnChangeMs = 0;
+  static bool lastBtnState = LOW;
 
-        Serial.print("[REMOTE] Ausgang ist jetzt: ");
-        Serial.println(g_remoteState ? "HIGH" : "LOW");
-      }
-      delay(30); 
+  bool currentBtnState = digitalRead(PIN_BTN);
+
+  // check for edge and debounce
+  if (currentBtnState != lastBtnState && (millis() - lastBtnChangeMs) > 50) {
+    lastBtnChangeMs = millis();
+    lastBtnState = currentBtnState;
+
+    // active HIGH, trigger on press
+    if (currentBtnState == HIGH) {
+      g_remoteState = !g_remoteState;
+      digitalWrite(PIN_OUT, g_remoteState ? HIGH : LOW);
+      digitalWrite(PIN_LED, g_remoteState ? HIGH : LOW);
+
+      Serial.print("[REMOTE] Ausgang ist jetzt: ");
+      Serial.println(g_remoteState ? "HIGH" : "LOW");
     }
-    while (digitalRead(PIN_BTN) == HIGH) delay(5); // warten bis losgelassen
-    delay(50);
   }
 }
 
@@ -732,44 +737,48 @@ void loop() {
   // ==== REMOTE-BUTTON (unabhängig vom Rest) ====
   remoteButtonTask();
 
-  /* ==== 1) ENCODER (nur wenn NICHT im Web-Modus) ==== */
-  if (!g_webControlMode) {
-    uint32_t nowUs = micros();
-    if ((nowUs - lastEncSampleUs) >= ENC_SAMPLE_US) {
-      lastEncSampleUs = nowUs;
-      uint8_t a = digitalRead(PIN_ENC_A);
-      uint8_t b = digitalRead(PIN_ENC_B);
-      uint8_t currAB = (b << 1) | a;
+  /* ==== 1) ENCODER ==== */
+  uint32_t nowUs = micros();
+  if ((nowUs - lastEncSampleUs) >= ENC_SAMPLE_US) {
+    lastEncSampleUs = nowUs;
+    uint8_t a = digitalRead(PIN_ENC_A);
+    uint8_t b = digitalRead(PIN_ENC_B);
+    uint8_t currAB = (b << 1) | a;
 
-      uint8_t idx  = (prevAB << 2) | currAB;
-      int8_t  step = encLut[idx];
+    uint8_t idx  = (prevAB << 2) | currAB;
+    int8_t  step = encLut[idx];
 
-      if (step != 0) {
-        encAccum += step;
-        if (encAccum >= 2) {
-          encAccum = 0;
-          g_psuDutyPctFine += DUTY_STEP_PERCENT;  // feiner Schritt nach oben (invertiert)
-          applyOutputAndLog("ENC +step", true);
-        } else if (encAccum <= -2) {
-          encAccum = 0;
-          g_psuDutyPctFine -= DUTY_STEP_PERCENT;  // feiner Schritt nach unten (invertiert)
-          applyOutputAndLog("ENC -step", true);
-        }
+    if (step != 0) {
+      encAccum += step;
+      if (encAccum >= 2) {
+        encAccum = 0;
+        g_regulationActive = false; // disable automatic regulation when manual encoder is used
+        g_psuDutyPctFine += DUTY_STEP_PERCENT;  // feiner Schritt nach oben (invertiert)
+        applyOutputAndLog("ENC +step", true);
+      } else if (encAccum <= -2) {
+        encAccum = 0;
+        g_regulationActive = false; // disable automatic regulation when manual encoder is used
+        g_psuDutyPctFine -= DUTY_STEP_PERCENT;  // feiner Schritt nach unten (invertiert)
+        applyOutputAndLog("ENC -step", true);
       }
-      prevAB = currAB;
     }
+    prevAB = currAB;
   }
 
-  /* ==== 2) BUTTON (Encoder-Klick) - nur wenn NICHT im Web-Modus ==== */
-  if (!g_webControlMode) {
-    static uint32_t lastBtnMs = 0;
-    if (millis() - lastBtnMs > 20) {
-      lastBtnMs = millis();
-      if (digitalRead(PIN_ENC_SW) == LOW) {
-        while (digitalRead(PIN_ENC_SW) == LOW) delay(5);
-        g_psuDutyPctFine = BTN_PSU_DUTY_PERCENT;
-        applyOutputAndLog("BTN->PRESET", false);
-      }
+  /* ==== 2) BUTTON (Encoder-Klick) ==== */
+  static uint32_t lastBtnMs = 0;
+  static bool lastEncBtnState = HIGH;
+  bool currentEncBtnState = digitalRead(PIN_ENC_SW);
+
+  if (currentEncBtnState != lastEncBtnState && (millis() - lastBtnMs > 50)) {
+    lastBtnMs = millis();
+    lastEncBtnState = currentEncBtnState;
+
+    // trigger on press (active LOW)
+    if (currentEncBtnState == LOW) {
+      g_regulationActive = false; // disable automatic regulation when manual encoder is used
+      g_psuDutyPctFine = BTN_PSU_DUTY_PERCENT;
+      applyOutputAndLog("BTN->PRESET", false);
     }
   }
 
