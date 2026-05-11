@@ -106,7 +106,7 @@ def _build_shell(pcb: PCBData, p: EnclosureParams):
             with Locations(Location((cx, cy, mid_z))):
                 Cylinder(p.insert_hole_diameter / 2, so_h, mode=Mode.SUBTRACT)
 
-        # I/O cutouts (punch through whichever wall is nearest)
+        # I/O cutouts (punch through nearest wall, or user-specified side)
         for feat in pcb.io_features:
             if not feat.enabled:
                 continue
@@ -116,17 +116,32 @@ def _build_shell(pcb: PCBData, p: EnclosureParams):
             z_lo = p.floor_thickness + p.pcb_standoff_height + feat.z_offset
             z_center = -total_h / 2 + z_lo + ch / 2
 
-            dist_left = feat.x
-            dist_right = w - feat.x
-            dist_bottom = feat.y
-            dist_top = h - feat.y
-            nearest = min(dist_left, dist_right, dist_bottom, dist_top)
-            if nearest in (dist_left, dist_right):
-                cut_w, cut_d = wall * 4, cw
+            side = getattr(feat, "side", "auto")
+            if side == "auto":
+                dist_left = feat.x
+                dist_right = w - feat.x
+                dist_bottom = feat.y
+                dist_top = h - feat.y
+                nearest = min(dist_left, dist_right, dist_bottom, dist_top)
+                if nearest == dist_left:    side = "left"
+                elif nearest == dist_right: side = "right"
+                elif nearest == dist_bottom: side = "bottom"
+                else:                        side = "top"
+
+            # Snap cutout to the chosen wall so it always punches through cleanly
+            if side in ("left", "right"):
+                wall_x = -outer_w / 2 if side == "left" else outer_w / 2
+                cut_box_w = wall * 4
+                cut_box_d = cw
+                cut_x, cut_y = wall_x, fy
             else:
-                cut_w, cut_d = cw, wall * 4
-            with Locations(Location((fx, fy, z_center))):
-                Box(cut_w, cut_d, ch, mode=Mode.SUBTRACT)
+                wall_y = -outer_h / 2 if side == "bottom" else outer_h / 2
+                cut_box_w = cw
+                cut_box_d = wall * 4
+                cut_x, cut_y = fx, wall_y
+
+            with Locations(Location((cut_x, cut_y, z_center))):
+                Box(cut_box_w, cut_box_d, ch, mode=Mode.SUBTRACT)
 
     return bp.part
 
@@ -164,9 +179,13 @@ def _build_lid(pcb: PCBData, p: EnclosureParams):
             boss_z = -lid_h / 2 - lip_depth / 2
             with Locations(Location((cx, cy, boss_z))):
                 Cylinder(p.lid_screw_insert_od / 2, lip_depth)
-            # Through-hole for M3 screw from top
-            with Locations(Location((cx, cy, 0))):
-                Cylinder(p.lid_screw_hole / 2, lid_h + lip_depth, mode=Mode.SUBTRACT)
+            # Through-hole goes from top of plate down to bottom of boss.
+            # Plate spans [-lid_h/2, +lid_h/2], boss spans [-lid_h/2-lip_depth, -lid_h/2].
+            # Total span: [-lid_h/2-lip_depth, +lid_h/2] -> length lid_h+lip_depth,
+            # centred at -lip_depth/2. +0.2 mm padding ensures clean break-through.
+            hole_len = lid_h + lip_depth + 0.2
+            with Locations(Location((cx, cy, -lip_depth / 2))):
+                Cylinder(p.lid_screw_hole / 2, hole_len, mode=Mode.SUBTRACT)
 
     return bp.part
 
