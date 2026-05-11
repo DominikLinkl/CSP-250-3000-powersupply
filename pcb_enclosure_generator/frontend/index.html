@@ -10,6 +10,7 @@
     :root {
       --bg: #0f1117;
       --surface: #1a1d27;
+      --surface-2: #232737;
       --border: #2d3148;
       --accent: #4f6ef7;
       --accent-hover: #3a58e8;
@@ -29,32 +30,23 @@
       padding: 24px 16px;
     }
 
-    header {
-      text-align: center;
-      margin-bottom: 40px;
-    }
+    header { text-align: center; margin-bottom: 32px; }
     header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
     header p  { color: var(--muted); margin-top: 8px; font-size: 0.95rem; }
 
-    .container { max-width: 860px; margin: 0 auto; }
+    .container { max-width: 1100px; margin: 0 auto; }
 
-    /* Step indicator */
     .steps {
       display: flex;
-      gap: 0;
-      margin-bottom: 36px;
+      margin-bottom: 28px;
       border-radius: var(--radius);
       overflow: hidden;
       border: 1px solid var(--border);
     }
     .step {
-      flex: 1;
-      padding: 12px 8px;
-      text-align: center;
-      font-size: 0.8rem;
-      font-weight: 600;
-      background: var(--surface);
-      color: var(--muted);
+      flex: 1; padding: 12px 8px; text-align: center;
+      font-size: 0.8rem; font-weight: 600;
+      background: var(--surface); color: var(--muted);
       border-right: 1px solid var(--border);
       transition: background 0.2s, color 0.2s;
     }
@@ -62,23 +54,27 @@
     .step.active { background: var(--accent); color: #fff; }
     .step.done   { background: #1e3a2f; color: var(--success); }
 
-    /* Cards */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 28px;
-      margin-bottom: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
     }
-    .card h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; }
+    .card h2 {
+      font-size: 1.05rem; font-weight: 600;
+      margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .card h2 .hint {
+      font-size: 0.78rem; font-weight: 400; color: var(--muted);
+    }
 
-    /* Upload zone */
     #drop-zone {
       border: 2px dashed var(--border);
       border-radius: var(--radius);
       padding: 48px 24px;
-      text-align: center;
-      cursor: pointer;
+      text-align: center; cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
     }
     #drop-zone:hover, #drop-zone.dragover {
@@ -90,102 +86,138 @@
     #drop-zone p { color: var(--muted); font-size: 0.9rem; }
     #drop-zone strong { color: var(--text); }
 
-    /* Form grid */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
+      gap: 16px;
     }
     .field label {
       display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 0.75rem; font-weight: 600;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.05em;
       margin-bottom: 6px;
     }
-    .field-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    input[type="range"] {
-      flex: 1;
-      accent-color: var(--accent);
-    }
-    input[type="number"], input[type="text"] {
+    .field-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: var(--accent); }
+    input[type="number"], input[type="text"], select {
       background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 6px;
       color: var(--text);
-      padding: 7px 10px;
-      font-size: 0.9rem;
-      width: 80px;
+      padding: 6px 9px;
+      font-size: 0.88rem;
+      width: 78px;
     }
-    input[type="number"]:focus, input[type="text"]:focus {
-      outline: none;
-      border-color: var(--accent);
+    input[type="number"]:focus, input[type="text"]:focus, select:focus {
+      outline: none; border-color: var(--accent);
     }
-    .unit { color: var(--muted); font-size: 0.8rem; min-width: 20px; }
+    .unit { color: var(--muted); font-size: 0.78rem; min-width: 20px; }
 
-    /* Hole / IO tables */
-    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    th { text-align: left; color: var(--muted); font-weight: 600;
-         font-size: 0.75rem; text-transform: uppercase; padding: 8px 10px;
-         border-bottom: 1px solid var(--border); }
-    td { padding: 9px 10px; border-bottom: 1px solid rgba(45,49,72,0.5); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    th {
+      text-align: left; color: var(--muted);
+      font-weight: 600; font-size: 0.72rem;
+      text-transform: uppercase; padding: 7px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 8px 8px; border-bottom: 1px solid rgba(45,49,72,0.5); }
     tr:last-child td { border-bottom: none; }
-    input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.2); }
+    td input[type="number"], td select { width: 70px; padding: 4px 7px; font-size: 0.84rem; }
+    td select { width: 95px; }
+    input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.15); cursor: pointer; }
+
     .badge {
       display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 999px;
+      font-size: 0.7rem; font-weight: 600;
+      padding: 2px 7px; border-radius: 999px;
     }
     .badge-blue { background: rgba(79,110,247,0.15); color: #818cf8; }
-    .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+    .badge-amber { background: rgba(245,158,11,0.15); color: #fbbf24; }
+    .badge-manual { background: rgba(34,197,94,0.15); color: #4ade80; }
 
-    /* PCB preview canvas */
-    #pcb-canvas {
-      display: block;
-      margin: 0 auto 16px;
+    .add-row-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--surface-2);
+      color: var(--accent);
+      border: 1px dashed var(--border);
       border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; margin-top: 10px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .add-row-btn:hover { border-color: var(--accent); background: rgba(79,110,247,0.08); }
+
+    .delete-btn {
+      background: transparent; border: none;
+      color: var(--danger); cursor: pointer;
+      font-size: 1rem; padding: 2px 6px;
+      opacity: 0.6;
+    }
+    .delete-btn:hover { opacity: 1; }
+
+    /* Blueprint canvas */
+    .blueprint-wrap {
+      background: #0a0d14;
       border: 1px solid var(--border);
-      background: #0d1321;
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    #blueprint {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 500px;
+    }
+    .blueprint-legend {
+      display: flex; flex-wrap: wrap;
+      gap: 14px; font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .legend-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .legend-line {
+      display: inline-block;
+      width: 16px; height: 3px;
+      margin-right: 6px;
+      vertical-align: middle;
     }
 
-    /* Buttons */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
+      display: inline-flex; align-items: center; gap: 8px;
       padding: 11px 22px;
       border-radius: 8px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
+      font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; border: none;
       transition: background 0.15s, opacity 0.15s;
     }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-primary:hover { background: var(--accent-hover); }
     .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn-secondary {
-      background: var(--bg);
-      color: var(--text);
+      background: var(--bg); color: var(--text);
       border: 1px solid var(--border);
     }
     .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-    .btn-download { background: #1e3a2f; color: var(--success); border: 1px solid #166534; }
+    .btn-download {
+      background: #1e3a2f; color: var(--success);
+      border: 1px solid #166534;
+    }
     .btn-download:hover { background: #14532d; }
 
-    /* Status bar */
     #status-bar {
       padding: 12px 16px;
       border-radius: var(--radius);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
       font-size: 0.88rem;
       display: none;
     }
@@ -193,11 +225,9 @@
     #status-bar.success { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.3);  color: #4ade80; }
     #status-bar.error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: #f87171; }
 
-    /* Section visibility */
     .section { display: none; }
     .section.visible { display: block; }
 
-    /* Download grid */
     .dl-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -223,23 +253,27 @@
       animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .button-row {
+      display: flex; gap: 12px;
+      justify-content: flex-end;
+      margin-top: 8px; flex-wrap: wrap;
+    }
   </style>
 </head>
 <body>
 <div class="container">
   <header>
     <h1>PCB Gehäuse-Generator</h1>
-    <p>Gerber-ZIP oder STEP hochladen &rarr; Parameter anpassen &rarr; 3D-druckbares Gehäuse herunterladen</p>
+    <p>Gerber-ZIP oder STEP hochladen → Bauplan prüfen → 3D-druckbares Gehäuse generieren</p>
   </header>
 
-  <!-- Step indicator -->
   <div class="steps">
     <div class="step active" id="step1">1 · Upload</div>
-    <div class="step"        id="step2">2 · Parameter</div>
+    <div class="step"        id="step2">2 · Bauplan &amp; Parameter</div>
     <div class="step"        id="step3">3 · Download</div>
   </div>
 
-  <!-- Status bar -->
   <div id="status-bar"></div>
 
   <!-- ── STEP 1: Upload ── -->
@@ -255,12 +289,23 @@
     </div>
   </div>
 
-  <!-- ── STEP 2: Parameter form ── -->
+  <!-- ── STEP 2: Blueprint + Parameter ── -->
   <div class="section" id="sec-params">
     <div class="card">
-      <h2>PCB-Vorschau</h2>
-      <canvas id="pcb-canvas" width="600" height="300"></canvas>
-      <p style="text-align:center;color:var(--muted);font-size:0.8rem" id="pcb-dims"></p>
+      <h2>
+        Bauplan
+        <span class="hint" id="dim-hint"></span>
+      </h2>
+      <div class="blueprint-wrap">
+        <canvas id="blueprint" width="1040" height="500"></canvas>
+      </div>
+      <div class="blueprint-legend">
+        <span><span class="legend-line" style="background:#475569"></span>Außenwand</span>
+        <span><span class="legend-line" style="background:#22c55e"></span>PCB-Outline</span>
+        <span><span class="legend-dot" style="background:#1d4ed8"></span>Montage-Standoff</span>
+        <span><span class="legend-dot" style="background:#a855f7"></span>Deckelschraube</span>
+        <span><span class="legend-dot" style="background:#f59e0b"></span>I/O-Cutout</span>
+      </div>
     </div>
 
     <div class="card">
@@ -317,38 +362,57 @@
       </div>
     </div>
 
-    <div class="card" id="card-holes" style="display:none">
-      <h2>Befestigungslöcher</h2>
-      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
-        Vias und kleine Löcher abwählen, die fälschlich als Montagelöcher erkannt wurden.
+    <div class="card">
+      <h2>
+        Montage-Standoffs
+        <span class="hint" id="holes-hint"></span>
+      </h2>
+      <p style="color:var(--muted);font-size:0.84rem;margin-bottom:10px">
+        Erkannte Befestigungslöcher (&gt; 2&nbsp;mm Ø). Falsch erkannte Vias abwählen.
+        Bei Bedarf manuelle Standoff-Positionen hinzufügen.
       </p>
-      <table>
+      <table id="holes-table">
         <thead>
           <tr>
-            <th>Verwenden</th><th>X (mm)</th><th>Y (mm)</th><th>Ø (mm)</th><th>Typ</th>
+            <th style="width:60px">Aktiv</th>
+            <th>X (mm)</th><th>Y (mm)</th><th>Ø (mm)</th>
+            <th>Quelle</th><th style="width:40px"></th>
           </tr>
         </thead>
         <tbody id="holes-tbody"></tbody>
       </table>
+      <button class="add-row-btn" onclick="addManualHole()">+ Manuellen Standoff hinzufügen</button>
     </div>
 
-    <div class="card" id="card-io" style="display:none">
-      <h2>I/O-Aussparungen</h2>
-      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
-        Automatisch erkannte I/O-Features an den Platinenkanten. Z-Offset und Höhe anpassen.
+    <div class="card">
+      <h2>
+        I/O-Aussparungen (Terminals, Buchsen, Stecker)
+        <span class="hint" id="io-hint"></span>
+      </h2>
+      <p style="color:var(--muted);font-size:0.84rem;margin-bottom:10px">
+        Automatisch erkannte randnahe Öffnungen plus manuell hinzufügbare Cutouts
+        für Klemmen, USB-Buchsen, etc.
       </p>
-      <table>
+      <table id="io-table">
         <thead>
           <tr>
-            <th>Verwenden</th><th>Label</th><th>Z-Offset</th><th>Höhe</th><th>Breite</th>
+            <th style="width:60px">Aktiv</th>
+            <th>Label</th>
+            <th>Wand</th>
+            <th>Pos. (mm)</th>
+            <th>Breite</th>
+            <th>Höhe</th>
+            <th>Z-Offset</th>
+            <th style="width:40px"></th>
           </tr>
         </thead>
         <tbody id="io-tbody"></tbody>
       </table>
+      <button class="add-row-btn" onclick="addManualIO()">+ Manuelles I/O hinzufügen</button>
     </div>
 
-    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
-      <button class="btn btn-secondary" onclick="resetUpload()">&#8592; Neu hochladen</button>
+    <div class="button-row">
+      <button class="btn btn-secondary" onclick="resetUpload()">← Neu hochladen</button>
       <button class="btn btn-primary" id="btn-generate" onclick="generateEnclosure()">
         Gehäuse generieren
       </button>
@@ -360,8 +424,9 @@
     <div class="card">
       <h2>Gehäuse fertig</h2>
       <p style="color:var(--muted);font-size:0.88rem;margin-bottom:24px">
-        Shell (Schale) und Lid (Deckel) sind bereit zum Download. Beide Teile sind FDM-optimiert
-        (45°-Fasen, Heat-Set-Kernlöcher, Material-Shrinkage-Ausgleich auf dem Deckel).
+        Shell (Schale) und Lid (Deckel) sind bereit zum Download. Beide Teile sind
+        FDM-optimiert: 45°-Fasen, Heat-Set-Kernlöcher, Material-Shrinkage-Ausgleich
+        auf dem Deckel, durchgehende M3-Schraublöcher.
       </p>
       <div class="dl-grid" id="dl-grid"></div>
     </div>
@@ -372,21 +437,20 @@
 </div>
 
 <script>
-  const API = '';   // same origin
+  // ── Global state ────────────────────────────────────────────────────────
+  const API = '';
   let jobId = null;
-  let analysisData = null;
+  let pcb = null;          // { board_width, board_height, outline_points }
+  let holes = [];          // [{x,y,diameter,is_mounting,enabled,source}]
+  let ios   = [];          // [{label,side,pos,width,height,z_offset,enabled,source}]
 
-  // ── Drag & Drop ──────────────────────────────────────────────────────────
-  const dropZone = document.getElementById('drop-zone');
+  // ── DOM hooks ───────────────────────────────────────────────────────────
+  const dropZone  = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
 
   dropZone.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
-
-  dropZone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropZone.classList.add('dragover');
-  });
+  dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('dragover'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
   dropZone.addEventListener('drop', e => {
     e.preventDefault();
@@ -394,23 +458,34 @@
     if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
   });
 
-  // ── Slider <-> number sync ───────────────────────────────────────────────
+  // Slider <-> number sync, also trigger redraw
   const sliderPairs = [
     ['inner-height', 'inner-height-val'],
-    ['wall', 'wall-val'],
-    ['tolerance', 'tolerance-val'],
-    ['standoff', 'standoff-val'],
-    ['insert-hole', 'insert-hole-val'],
-    ['floor', 'floor-val'],
+    ['wall',         'wall-val'],
+    ['tolerance',    'tolerance-val'],
+    ['standoff',     'standoff-val'],
+    ['insert-hole',  'insert-hole-val'],
+    ['floor',        'floor-val'],
   ];
   sliderPairs.forEach(([sliderId, numId]) => {
     const slider = document.getElementById(sliderId);
     const num    = document.getElementById(numId);
-    slider.addEventListener('input', () => num.value = slider.value);
-    num.addEventListener('input',    () => slider.value = num.value);
+    slider.addEventListener('input', () => { num.value = slider.value; drawBlueprint(); });
+    num.addEventListener('input',    () => { slider.value = num.value; drawBlueprint(); });
   });
 
-  // ── Upload & analysis ────────────────────────────────────────────────────
+  function getParams() {
+    return {
+      inner_height:         parseFloat(document.getElementById('inner-height-val').value),
+      wall_thickness:       parseFloat(document.getElementById('wall-val').value),
+      tolerance:            parseFloat(document.getElementById('tolerance-val').value),
+      pcb_standoff_height:  parseFloat(document.getElementById('standoff-val').value),
+      insert_hole_diameter: parseFloat(document.getElementById('insert-hole-val').value),
+      floor_thickness:      parseFloat(document.getElementById('floor-val').value),
+    };
+  }
+
+  // ── Upload + analyse ────────────────────────────────────────────────────
   async function handleFile(file) {
     if (!file) return;
     showStatus('info', `Analysiere ${file.name} …`);
@@ -418,165 +493,345 @@
     fd.append('file', file);
     try {
       const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || 'Upload fehlgeschlagen');
-      }
-      analysisData = await res.json();
-      jobId = analysisData.job_id;
-      populateForm(analysisData);
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Upload fehlgeschlagen'); }
+      const data = await res.json();
+      jobId = data.job_id;
+      pcb = {
+        board_width:    data.board_width,
+        board_height:   data.board_height,
+        outline_points: data.outline_points,
+      };
+      holes = data.mounting_holes.map(h => ({ ...h, source: 'auto' }));
+      // For IO, convert (x,y) to side + pos-along-side for the table UI
+      ios = data.io_features.map((f, i) => {
+        const inferred = inferSide(f.x, f.y, data.board_width, data.board_height);
+        return {
+          label: f.label || `IO_${i+1}`,
+          side: f.side && f.side !== 'auto' ? f.side : inferred.side,
+          pos: inferred.pos,             // mm along the chosen wall, measured from board origin
+          width: f.width,
+          height: f.cutout_height,
+          z_offset: f.z_offset,
+          enabled: f.enabled,
+          source: 'auto',
+        };
+      });
+      renderHolesTable();
+      renderIOTable();
+      updateHints();
+      drawBlueprint();
       setStep(2);
       showStatus('success',
-        `Platine erkannt: ${analysisData.board_width.toFixed(1)} × ${analysisData.board_height.toFixed(1)} mm · ` +
-        `${analysisData.mounting_holes.length} Befestigungsloch(Löcher) · ` +
-        `${analysisData.io_features.length} I/O-Feature(s)`);
+        `Platine: ${pcb.board_width.toFixed(1)} × ${pcb.board_height.toFixed(1)} mm · ` +
+        `${holes.length} Montageloch(Löcher) · ${ios.length} I/O-Feature(s) erkannt`);
     } catch (e) {
       showStatus('error', e.message);
     }
   }
 
-  function populateForm(data) {
-    document.getElementById('pcb-dims').textContent =
-      `${data.board_width.toFixed(2)} × ${data.board_height.toFixed(2)} mm`;
-    drawPCB(data);
+  function inferSide(x, y, w, h) {
+    const d = { left: x, right: w - x, bottom: y, top: h - y };
+    const side = Object.keys(d).reduce((a, b) => d[a] < d[b] ? a : b);
+    const pos = (side === 'left' || side === 'right') ? y : x;
+    return { side, pos };
+  }
 
-    // Mounting holes table
-    const holesCard = document.getElementById('card-holes');
-    const holesBody = document.getElementById('holes-tbody');
-    holesBody.innerHTML = '';
-    if (data.mounting_holes.length > 0) {
-      holesCard.style.display = '';
-      data.mounting_holes.forEach((h, i) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><input type="checkbox" data-hole="${i}" ${h.enabled ? 'checked' : ''} /></td>
-          <td>${h.x.toFixed(2)}</td>
-          <td>${h.y.toFixed(2)}</td>
-          <td>${h.diameter.toFixed(2)}</td>
-          <td><span class="badge badge-blue">Montage</span></td>`;
-        holesBody.appendChild(row);
-      });
-    }
+  // ── Holes table ─────────────────────────────────────────────────────────
+  function renderHolesTable() {
+    const body = document.getElementById('holes-tbody');
+    body.innerHTML = '';
+    holes.forEach((h, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" ${h.enabled ? 'checked' : ''} onchange="updateHole(${i},'enabled',this.checked)"></td>
+        <td><input type="number" value="${h.x.toFixed(2)}" step="0.5" onchange="updateHole(${i},'x',parseFloat(this.value))"></td>
+        <td><input type="number" value="${h.y.toFixed(2)}" step="0.5" onchange="updateHole(${i},'y',parseFloat(this.value))"></td>
+        <td><input type="number" value="${h.diameter.toFixed(2)}" step="0.1" min="0.5" onchange="updateHole(${i},'diameter',parseFloat(this.value))"></td>
+        <td><span class="badge badge-${h.source === 'manual' ? 'manual' : 'blue'}">${h.source === 'manual' ? 'Manuell' : 'Auto'}</span></td>
+        <td><button class="delete-btn" onclick="deleteHole(${i})" title="Entfernen">&#x2715;</button></td>`;
+      body.appendChild(tr);
+    });
+  }
+  function updateHole(i, field, val) { holes[i][field] = val; drawBlueprint(); updateHints(); }
+  function deleteHole(i) { holes.splice(i, 1); renderHolesTable(); drawBlueprint(); updateHints(); }
+  function addManualHole() {
+    if (!pcb) return;
+    holes.push({
+      x: pcb.board_width / 2, y: pcb.board_height / 2,
+      diameter: 3.2, is_mounting: true,
+      enabled: true, source: 'manual',
+    });
+    renderHolesTable(); drawBlueprint(); updateHints();
+  }
 
-    // I/O features table
-    const ioCard = document.getElementById('card-io');
-    const ioBody = document.getElementById('io-tbody');
-    ioBody.innerHTML = '';
-    if (data.io_features.length > 0) {
-      ioCard.style.display = '';
-      data.io_features.forEach((f, i) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><input type="checkbox" data-io="${i}" ${f.enabled ? 'checked' : ''} /></td>
-          <td>${f.label || 'IO_' + (i + 1)}</td>
-          <td><input type="number" data-io-zoffset="${i}" value="${f.z_offset.toFixed(1)}"
-               step="0.5" style="width:70px" /> mm</td>
-          <td><input type="number" data-io-height="${i}" value="${f.cutout_height.toFixed(1)}"
-               step="0.5" min="3" style="width:70px" /> mm</td>
-          <td>${f.width.toFixed(1)} mm</td>`;
-        ioBody.appendChild(row);
-      });
+  // ── I/O table ───────────────────────────────────────────────────────────
+  function renderIOTable() {
+    const body = document.getElementById('io-tbody');
+    body.innerHTML = '';
+    ios.forEach((f, i) => {
+      const maxPos = (f.side === 'left' || f.side === 'right') ? pcb.board_height : pcb.board_width;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="checkbox" ${f.enabled ? 'checked' : ''} onchange="updateIO(${i},'enabled',this.checked)"></td>
+        <td><input type="text" value="${f.label}" style="width:90px" onchange="updateIO(${i},'label',this.value)"></td>
+        <td>
+          <select onchange="updateIO(${i},'side',this.value)">
+            <option value="left"   ${f.side==='left'  ?'selected':''}>Links</option>
+            <option value="right"  ${f.side==='right' ?'selected':''}>Rechts</option>
+            <option value="bottom" ${f.side==='bottom'?'selected':''}>Unten</option>
+            <option value="top"    ${f.side==='top'   ?'selected':''}>Oben</option>
+          </select>
+        </td>
+        <td><input type="number" value="${f.pos.toFixed(1)}" step="0.5" min="0" max="${maxPos.toFixed(1)}" onchange="updateIO(${i},'pos',parseFloat(this.value))"></td>
+        <td><input type="number" value="${f.width.toFixed(1)}" step="0.5" min="1" onchange="updateIO(${i},'width',parseFloat(this.value))"></td>
+        <td><input type="number" value="${f.height.toFixed(1)}" step="0.5" min="1" onchange="updateIO(${i},'height',parseFloat(this.value))"></td>
+        <td><input type="number" value="${f.z_offset.toFixed(1)}" step="0.5" onchange="updateIO(${i},'z_offset',parseFloat(this.value))"></td>
+        <td><button class="delete-btn" onclick="deleteIO(${i})" title="Entfernen">&#x2715;</button></td>`;
+      body.appendChild(tr);
+    });
+  }
+  function updateIO(i, field, val) { ios[i][field] = val; drawBlueprint(); updateHints(); }
+  function deleteIO(i) { ios.splice(i, 1); renderIOTable(); drawBlueprint(); updateHints(); }
+  function addManualIO() {
+    if (!pcb) return;
+    ios.push({
+      label: `Cutout_${ios.length + 1}`,
+      side: 'left',
+      pos: pcb.board_height / 2,
+      width: 12, height: 8, z_offset: 0,
+      enabled: true, source: 'manual',
+    });
+    renderIOTable(); drawBlueprint(); updateHints();
+  }
+
+  function updateHints() {
+    const activeH = holes.filter(h => h.enabled).length;
+    const activeI = ios.filter(f => f.enabled).length;
+    document.getElementById('holes-hint').textContent = `${activeH} aktiv von ${holes.length}`;
+    document.getElementById('io-hint').textContent    = `${activeI} aktiv von ${ios.length}`;
+    if (pcb) {
+      const p = getParams();
+      const ow = pcb.board_width  + 2 * p.tolerance + 2 * p.wall_thickness;
+      const oh = pcb.board_height + 2 * p.tolerance + 2 * p.wall_thickness;
+      const oz = p.floor_thickness + p.pcb_standoff_height + p.inner_height;
+      document.getElementById('dim-hint').textContent =
+        `Gehäuse außen: ${ow.toFixed(1)} × ${oh.toFixed(1)} × ${oz.toFixed(1)} mm`;
     }
   }
 
-  // ── PCB canvas preview ───────────────────────────────────────────────────
-  function drawPCB(data) {
-    const canvas = document.getElementById('pcb-canvas');
+  // ── Lid boss positions (mirrors backend math) ──────────────────────────
+  function lidBossPositions(outerW, outerH, wall, maxSpacing=30, minCount=4) {
+    const perimeter = 2 * (outerW + outerH);
+    const n = Math.max(minCount, Math.ceil(perimeter / maxSpacing));
+    const corners = [
+      [wall, wall],
+      [outerW - wall, wall],
+      [outerW - wall, outerH - wall],
+      [wall, outerH - wall],
+    ];
+    const positions = [...corners];
+    const sides = [
+      [corners[0], corners[1]],
+      [corners[1], corners[2]],
+      [corners[2], corners[3]],
+      [corners[3], corners[0]],
+    ];
+    const extra = n - 4;
+    const perSide = Math.floor(extra / 4);
+    const remainder = extra % 4;
+    sides.forEach((s, i) => {
+      const [[x0, y0], [x1, y1]] = s;
+      const count = perSide + (i < remainder ? 1 : 0);
+      for (let j = 1; j <= count; j++) {
+        const t = j / (count + 1);
+        positions.push([x0 + t * (x1 - x0), y0 + t * (y1 - y0)]);
+      }
+    });
+    return positions;
+  }
+
+  // ── Blueprint drawing ──────────────────────────────────────────────────
+  function drawBlueprint() {
+    if (!pcb) return;
+    const canvas = document.getElementById('blueprint');
     const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    const pad = 40;
-    const scaleX = (W - 2 * pad) / data.board_width;
-    const scaleY = (H - 2 * pad) / data.board_height;
-    const scale = Math.min(scaleX, scaleY);
-    const ox = (W - data.board_width * scale) / 2;
-    const oy = (H - data.board_height * scale) / 2;
+    const W = canvas.width, H = canvas.height, pad = 60;
+    const p = getParams();
+
+    const ow = pcb.board_width  + 2 * p.tolerance + 2 * p.wall_thickness;
+    const oh = pcb.board_height + 2 * p.tolerance + 2 * p.wall_thickness;
+    const scale = Math.min((W - 2 * pad) / ow, (H - 2 * pad) / oh);
+    const ox = (W - ow * scale) / 2;
+    const oy = (H - oh * scale) / 2;
+
+    // World -> canvas helpers. Y is flipped so +y points up like a CAD view.
+    const px = wx => ox + wx * scale;
+    const py = wy => oy + (oh - wy) * scale;
 
     ctx.clearRect(0, 0, W, H);
 
-    // Board outline fill
-    ctx.fillStyle = '#0a2a1a';
-    ctx.strokeStyle = '#22c55e';
+    // 1. Outer wall fill
+    ctx.fillStyle = '#1e2433';
+    ctx.fillRect(px(0), py(oh), ow * scale, oh * scale);
+    ctx.strokeStyle = '#475569';
     ctx.lineWidth = 1.5;
-    if (data.outline_points.length > 1) {
+    ctx.strokeRect(px(0), py(oh), ow * scale, oh * scale);
+
+    // 2. Inner cavity (PCB + tolerance margin)
+    const cavW = pcb.board_width  + 2 * p.tolerance;
+    const cavH = pcb.board_height + 2 * p.tolerance;
+    const cavX = p.wall_thickness, cavY = p.wall_thickness;
+    ctx.fillStyle = '#0a0d14';
+    ctx.fillRect(px(cavX), py(cavY + cavH), cavW * scale, cavH * scale);
+    ctx.strokeStyle = '#334155';
+    ctx.setLineDash([4, 4]);
+    ctx.strokeRect(px(cavX), py(cavY + cavH), cavW * scale, cavH * scale);
+    ctx.setLineDash([]);
+
+    // 3. PCB outline (offset by wall + tolerance so it sits in the cavity)
+    const pcbOx = p.wall_thickness + p.tolerance;
+    const pcbOy = p.wall_thickness + p.tolerance;
+    ctx.fillStyle = 'rgba(34,197,94,0.08)';
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 1.4;
+    if (pcb.outline_points.length > 2) {
       ctx.beginPath();
-      ctx.moveTo(ox + data.outline_points[0][0] * scale,
-                 oy + data.outline_points[0][1] * scale);
-      data.outline_points.forEach(([x, y]) =>
-        ctx.lineTo(ox + x * scale, oy + y * scale));
+      const first = pcb.outline_points[0];
+      ctx.moveTo(px(pcbOx + first[0]), py(pcbOy + first[1]));
+      pcb.outline_points.forEach(([x, y]) => ctx.lineTo(px(pcbOx + x), py(pcbOy + y)));
       ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
+      ctx.fill(); ctx.stroke();
     } else {
-      // Fallback rectangle
-      ctx.fillRect(ox, oy, data.board_width * scale, data.board_height * scale);
-      ctx.strokeRect(ox, oy, data.board_width * scale, data.board_height * scale);
+      ctx.fillRect(px(pcbOx), py(pcbOy + pcb.board_height), pcb.board_width * scale, pcb.board_height * scale);
+      ctx.strokeRect(px(pcbOx), py(pcbOy + pcb.board_height), pcb.board_width * scale, pcb.board_height * scale);
     }
 
-    // Mounting holes
-    data.mounting_holes.forEach(h => {
-      const hx = ox + h.x * scale;
-      const hy = oy + h.y * scale;
-      const r = Math.max(3, h.diameter * scale / 2);
+    // 4. Mounting standoffs
+    const standoffOD = 6.5;
+    holes.filter(h => h.enabled).forEach(h => {
+      const hx = px(pcbOx + h.x);
+      const hy = py(pcbOy + h.y);
+      // Standoff outer ring
       ctx.beginPath();
-      ctx.arc(hx, hy, r, 0, Math.PI * 2);
-      ctx.fillStyle = '#1d4ed8';
+      ctx.arc(hx, hy, Math.max(3, standoffOD * scale / 2), 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(29,78,216,0.35)';
       ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 1.2;
+      ctx.fill(); ctx.stroke();
+      // Heat-set core
+      ctx.beginPath();
+      ctx.arc(hx, hy, Math.max(1.5, p.insert_hole_diameter * scale / 2), 0, Math.PI * 2);
+      ctx.fillStyle = '#0a0d14';
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 0.8;
+      ctx.fill(); ctx.stroke();
+    });
+
+    // 5. Lid screw bosses
+    const bossOD = 6.0;
+    const screwD = 3.2;
+    const bosses = lidBossPositions(ow, oh, p.wall_thickness);
+    bosses.forEach(([bx, by]) => {
+      const cx = px(bx), cy = py(by);
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(3, bossOD * scale / 2), 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(168,85,247,0.25)';
+      ctx.strokeStyle = '#c084fc';
       ctx.lineWidth = 1;
+      ctx.fill(); ctx.stroke();
+      // Through hole
+      ctx.beginPath();
+      ctx.arc(cx, cy, Math.max(1, screwD * scale / 2), 0, Math.PI * 2);
+      ctx.fillStyle = '#0a0d14';
       ctx.fill();
-      ctx.stroke();
     });
 
-    // I/O features
-    data.io_features.forEach(f => {
-      const fx = ox + f.x * scale - (f.width * scale) / 2;
-      const fy = oy + f.y * scale - (f.height * scale) / 2;
-      ctx.fillStyle = 'rgba(245,158,11,0.25)';
+    // 6. I/O cutouts (drawn as colored slots punching through walls)
+    ios.filter(f => f.enabled).forEach(f => {
+      const wallThk = p.wall_thickness;
+      let rx, ry, rw, rh;   // in world coords
+      if (f.side === 'left') {
+        rx = 0;
+        ry = pcbOy + f.pos - f.width / 2;
+        rw = wallThk;
+        rh = f.width;
+      } else if (f.side === 'right') {
+        rx = ow - wallThk;
+        ry = pcbOy + f.pos - f.width / 2;
+        rw = wallThk;
+        rh = f.width;
+      } else if (f.side === 'bottom') {
+        rx = pcbOx + f.pos - f.width / 2;
+        ry = 0;
+        rw = f.width;
+        rh = wallThk;
+      } else {  // top
+        rx = pcbOx + f.pos - f.width / 2;
+        ry = oh - wallThk;
+        rw = f.width;
+        rh = wallThk;
+      }
+      ctx.fillStyle = 'rgba(245,158,11,0.55)';
+      ctx.fillRect(px(rx), py(ry + rh), rw * scale, rh * scale);
       ctx.strokeStyle = '#f59e0b';
-      ctx.lineWidth = 1;
-      ctx.fillRect(fx, fy, f.width * scale, f.height * scale);
-      ctx.strokeRect(fx, fy, f.width * scale, f.height * scale);
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(px(rx), py(ry + rh), rw * scale, rh * scale);
+      // Label
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = '10px sans-serif';
+      const lx = px(rx + rw / 2);
+      const ly = py(ry + rh / 2);
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      if (f.label && f.width * scale > 25) {
+        ctx.fillText(f.label, lx, ly);
+      }
     });
 
-    // Legend
-    ctx.fillStyle = '#22c55e'; ctx.font = '11px sans-serif';
-    ctx.fillText('● Montageloch', pad, H - 14);
-    ctx.fillStyle = '#f59e0b';
-    ctx.fillText('■ I/O-Feature', pad + 110, H - 14);
+    // 7. Dimension labels on outer walls
+    ctx.fillStyle = '#64748b';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${ow.toFixed(1)} mm`, px(ow / 2), py(oh) - 14);
+    ctx.save();
+    ctx.translate(px(0) - 14, py(oh / 2));
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(`${oh.toFixed(1)} mm`, 0, 0);
+    ctx.restore();
   }
 
-  // ── Generate ─────────────────────────────────────────────────────────────
+  // ── Generate ────────────────────────────────────────────────────────────
   async function generateEnclosure() {
     const btn = document.getElementById('btn-generate');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Wird berechnet …';
     showStatus('info', 'CAD-Kernel generiert Gehäuse …');
 
-    const mountingHoles = (analysisData.mounting_holes || []).map((h, i) => {
-      const cb = document.querySelector(`input[data-hole="${i}"]`);
-      return { ...h, enabled: cb ? cb.checked : h.enabled };
-    });
-    const ioFeatures = (analysisData.io_features || []).map((f, i) => {
-      const cb      = document.querySelector(`input[data-io="${i}"]`);
-      const zInput  = document.querySelector(`input[data-io-zoffset="${i}"]`);
-      const hInput  = document.querySelector(`input[data-io-height="${i}"]`);
+    // Convert UI I/O (side + pos) back to (x, y) for backend
+    const ioPayload = ios.map(f => {
+      let x, y;
+      if (f.side === 'left')        { x = 0;                 y = f.pos; }
+      else if (f.side === 'right')  { x = pcb.board_width;   y = f.pos; }
+      else if (f.side === 'bottom') { x = f.pos;             y = 0; }
+      else                          { x = f.pos;             y = pcb.board_height; }
       return {
-        ...f,
-        enabled:       cb     ? cb.checked              : f.enabled,
-        z_offset:      zInput ? parseFloat(zInput.value) : f.z_offset,
-        cutout_height: hInput ? parseFloat(hInput.value) : f.cutout_height,
+        x, y, width: f.width, height: f.width,
+        z_offset: f.z_offset, cutout_height: f.height,
+        label: f.label, enabled: f.enabled, side: f.side,
       };
     });
 
+    const holePayload = holes.map(h => ({
+      x: h.x, y: h.y, diameter: h.diameter,
+      is_mounting: true, enabled: h.enabled,
+    }));
+
     const payload = {
-      job_id:               jobId,
-      inner_height:         parseFloat(document.getElementById('inner-height-val').value),
-      wall_thickness:       parseFloat(document.getElementById('wall-val').value),
-      tolerance:            parseFloat(document.getElementById('tolerance-val').value),
-      pcb_standoff_height:  parseFloat(document.getElementById('standoff-val').value),
-      insert_hole_diameter: parseFloat(document.getElementById('insert-hole-val').value),
-      floor_thickness:      parseFloat(document.getElementById('floor-val').value),
-      mounting_holes:       mountingHoles,
-      io_features:          ioFeatures,
+      job_id: jobId,
+      ...getParams(),
+      mounting_holes: holePayload,
+      io_features:    ioPayload,
     };
 
     try {
@@ -585,10 +840,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.detail || 'Generierung fehlgeschlagen');
-      }
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Generierung fehlgeschlagen'); }
       const result = await res.json();
       buildDownloadGrid(result.files);
       setStep(3);
@@ -618,33 +870,27 @@
         <div class="file-icon">${icons[f.format] || '&#128196;'}</div>
         <div class="file-name">${f.name}</div>
         <div class="file-desc">${descs[f.name] || f.format}</div>
-        <a href="${f.url}" download="${f.name}" class="btn btn-download" style="width:100%;justify-content:center">
-          Download
-        </a>`;
+        <a href="${f.url}" download="${f.name}" class="btn btn-download" style="width:100%;justify-content:center">Download</a>`;
       grid.appendChild(div);
     });
   }
 
-  // ── Utilities ─────────────────────────────────────────────────────────────
+  // ── Step navigation + status ────────────────────────────────────────────
   function setStep(n) {
     [1, 2, 3].forEach(i => {
-      const step = document.getElementById(`step${i}`);
-      const sec  = document.getElementById(['', 'sec-upload', 'sec-params', 'sec-download'][i]);
-      step.className = 'step ' + (i < n ? 'done' : i === n ? 'active' : '');
-      sec.className  = 'section ' + (i === n ? 'visible' : '');
+      document.getElementById(`step${i}`).className = 'step ' + (i < n ? 'done' : i === n ? 'active' : '');
+      const secId = ['', 'sec-upload', 'sec-params', 'sec-download'][i];
+      document.getElementById(secId).className = 'section ' + (i === n ? 'visible' : '');
     });
   }
-
   function showStatus(type, msg) {
     const bar = document.getElementById('status-bar');
-    bar.className = `${type}`;
+    bar.className = type;
     bar.textContent = msg;
     bar.style.display = 'block';
   }
-
   function resetUpload() {
-    jobId = null;
-    analysisData = null;
+    jobId = null; pcb = null; holes = []; ios = [];
     fileInput.value = '';
     setStep(1);
     document.getElementById('status-bar').style.display = 'none';

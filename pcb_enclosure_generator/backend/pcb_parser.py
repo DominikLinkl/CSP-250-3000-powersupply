@@ -40,6 +40,7 @@ class IOFeature:
     cutout_height: float = 8.0  # mm, user-adjustable
     label: str = ""
     enabled: bool = True
+    side: str = "auto"      # "auto" | "left" | "right" | "bottom" | "top"
 
 
 @dataclass

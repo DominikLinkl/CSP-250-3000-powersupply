@@ -54,6 +54,7 @@ class IOFeatureDTO(BaseModel):
     cutout_height: float = 8.0
     label: str = ""
     enabled: bool = True
+    side: str = "auto"   # "auto" | "left" | "right" | "bottom" | "top"
 
 
 class AnalysisResult(BaseModel):
@@ -132,17 +133,17 @@ async def generate(req: GenerateRequest):
     job = jobs[req.job_id]
     pcb: PCBData = job["pcb"]
 
-    # Apply user overrides back onto PCBData
-    if req.mounting_holes:
-        for i, h in enumerate(pcb.mounting_holes):
-            if i < len(req.mounting_holes):
-                h.enabled = req.mounting_holes[i].enabled
-    if req.io_features:
-        for i, f in enumerate(pcb.io_features):
-            if i < len(req.io_features):
-                f.enabled = req.io_features[i].enabled
-                f.z_offset = req.io_features[i].z_offset
-                f.cutout_height = req.io_features[i].cutout_height
+    # Replace lists entirely so the user can also add manual entries
+    pcb.mounting_holes = [Hole(
+        x=h.x, y=h.y, diameter=h.diameter,
+        is_mounting=h.is_mounting, enabled=h.enabled,
+    ) for h in req.mounting_holes]
+
+    pcb.io_features = [IOFeature(
+        x=f.x, y=f.y, width=f.width, height=f.height,
+        z_offset=f.z_offset, cutout_height=f.cutout_height,
+        label=f.label, enabled=f.enabled, side=f.side,
+    ) for f in req.io_features]
 
     params = EnclosureParams(
         inner_height=req.inner_height,
