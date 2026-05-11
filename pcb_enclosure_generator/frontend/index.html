@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PCB Gehäuse-Generator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2d3148;
+      --accent: #4f6ef7;
+      --accent-hover: #3a58e8;
+      --success: #22c55e;
+      --warn: #f59e0b;
+      --danger: #ef4444;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; letter-spacing: -0.5px; }
+    header p  { color: var(--muted); margin-top: 8px; font-size: 0.95rem; }
+
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* Step indicator */
+    .steps {
+      display: flex;
+      gap: 0;
+      margin-bottom: 36px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .step {
+      flex: 1;
+      padding: 12px 8px;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: var(--surface);
+      color: var(--muted);
+      border-right: 1px solid var(--border);
+      transition: background 0.2s, color 0.2s;
+    }
+    .step:last-child { border-right: none; }
+    .step.active { background: var(--accent); color: #fff; }
+    .step.done   { background: #1e3a2f; color: var(--success); }
+
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .card h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; }
+
+    /* Upload zone */
+    #drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 48px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    #drop-zone:hover, #drop-zone.dragover {
+      border-color: var(--accent);
+      background: rgba(79,110,247,0.05);
+    }
+    #drop-zone input { display: none; }
+    #drop-zone .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    #drop-zone p { color: var(--muted); font-size: 0.9rem; }
+    #drop-zone strong { color: var(--text); }
+
+    /* Form grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+    }
+    input[type="number"], input[type="text"] {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 7px 10px;
+      font-size: 0.9rem;
+      width: 80px;
+    }
+    input[type="number"]:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .unit { color: var(--muted); font-size: 0.8rem; min-width: 20px; }
+
+    /* Hole / IO tables */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { text-align: left; color: var(--muted); font-weight: 600;
+         font-size: 0.75rem; text-transform: uppercase; padding: 8px 10px;
+         border-bottom: 1px solid var(--border); }
+    td { padding: 9px 10px; border-bottom: 1px solid rgba(45,49,72,0.5); }
+    tr:last-child td { border-bottom: none; }
+    input[type="checkbox"] { accent-color: var(--accent); transform: scale(1.2); }
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .badge-blue { background: rgba(79,110,247,0.15); color: #818cf8; }
+    .badge-green { background: rgba(34,197,94,0.15); color: #4ade80; }
+
+    /* PCB preview canvas */
+    #pcb-canvas {
+      display: block;
+      margin: 0 auto 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #0d1321;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-download { background: #1e3a2f; color: var(--success); border: 1px solid #166534; }
+    .btn-download:hover { background: #14532d; }
+
+    /* Status bar */
+    #status-bar {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      display: none;
+    }
+    #status-bar.info    { background: rgba(79,110,247,0.1); border: 1px solid rgba(79,110,247,0.3); color: #93c5fd; }
+    #status-bar.success { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.3);  color: #4ade80; }
+    #status-bar.error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: #f87171; }
+
+    /* Section visibility */
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    /* Download grid */
+    .dl-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+    .dl-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px 16px;
+      text-align: center;
+    }
+    .dl-item .file-icon { font-size: 2rem; margin-bottom: 8px; }
+    .dl-item .file-name { font-size: 0.88rem; font-weight: 600; margin-bottom: 10px; }
+    .dl-item .file-desc { font-size: 0.75rem; color: var(--muted); margin-bottom: 14px; }
+
+    .spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>PCB Gehäuse-Generator</h1>
+    <p>Gerber-ZIP oder STEP hochladen &rarr; Parameter anpassen &rarr; 3D-druckbares Gehäuse herunterladen</p>
+  </header>
+
+  <!-- Step indicator -->
+  <div class="steps">
+    <div class="step active" id="step1">1 · Upload</div>
+    <div class="step"        id="step2">2 · Parameter</div>
+    <div class="step"        id="step3">3 · Download</div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="status-bar"></div>
+
+  <!-- ── STEP 1: Upload ── -->
+  <div class="section visible" id="sec-upload">
+    <div class="card">
+      <h2>Leiterplatten-Datei hochladen</h2>
+      <div id="drop-zone">
+        <input type="file" id="file-input" accept=".zip,.step,.stp" />
+        <div class="icon">&#128220;</div>
+        <p><strong>Datei hierher ziehen</strong> oder klicken zum Auswählen</p>
+        <p style="margin-top:8px">Unterstützt: Gerber-ZIP &nbsp;·&nbsp; STEP / STP</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Parameter form ── -->
+  <div class="section" id="sec-params">
+    <div class="card">
+      <h2>PCB-Vorschau</h2>
+      <canvas id="pcb-canvas" width="600" height="300"></canvas>
+      <p style="text-align:center;color:var(--muted);font-size:0.8rem" id="pcb-dims"></p>
+    </div>
+
+    <div class="card">
+      <h2>Gehäuse-Dimensionen</h2>
+      <div class="form-grid">
+        <div class="field">
+          <label>Lichte Innenhöhe (Z)</label>
+          <div class="field-row">
+            <input type="range" id="inner-height" min="5" max="100" step="0.5" value="25" />
+            <input type="number" id="inner-height-val" min="5" max="100" step="0.5" value="25" />
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Wandstärke</label>
+          <div class="field-row">
+            <input type="range" id="wall" min="1.2" max="8" step="0.4" value="2.4" />
+            <input type="number" id="wall-val" min="1.2" max="8" step="0.4" value="2.4" />
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Toleranz-Offset</label>
+          <div class="field-row">
+            <input type="range" id="tolerance" min="0" max="2" step="0.1" value="0.3" />
+            <input type="number" id="tolerance-val" min="0" max="2" step="0.1" value="0.3" />
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>PCB-Standoff-Höhe</label>
+          <div class="field-row">
+            <input type="range" id="standoff" min="2" max="30" step="0.5" value="5" />
+            <input type="number" id="standoff-val" min="2" max="30" step="0.5" value="5" />
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Kernloch Heat-Set (M3)</label>
+          <div class="field-row">
+            <input type="range" id="insert-hole" min="2" max="8" step="0.1" value="4" />
+            <input type="number" id="insert-hole-val" min="2" max="8" step="0.1" value="4" />
+            <span class="unit">mm</span>
+          </div>
+        </div>
+        <div class="field">
+          <label>Bodenstärke</label>
+          <div class="field-row">
+            <input type="range" id="floor" min="0.8" max="4" step="0.4" value="1.2" />
+            <input type="number" id="floor-val" min="0.8" max="4" step="0.4" value="1.2" />
+            <span class="unit">mm</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-holes" style="display:none">
+      <h2>Befestigungslöcher</h2>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Vias und kleine Löcher abwählen, die fälschlich als Montagelöcher erkannt wurden.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Verwenden</th><th>X (mm)</th><th>Y (mm)</th><th>Ø (mm)</th><th>Typ</th>
+          </tr>
+        </thead>
+        <tbody id="holes-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="card" id="card-io" style="display:none">
+      <h2>I/O-Aussparungen</h2>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:14px">
+        Automatisch erkannte I/O-Features an den Platinenkanten. Z-Offset und Höhe anpassen.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Verwenden</th><th>Label</th><th>Z-Offset</th><th>Höhe</th><th>Breite</th>
+          </tr>
+        </thead>
+        <tbody id="io-tbody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
+      <button class="btn btn-secondary" onclick="resetUpload()">&#8592; Neu hochladen</button>
+      <button class="btn btn-primary" id="btn-generate" onclick="generateEnclosure()">
+        Gehäuse generieren
+      </button>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: Download ── -->
+  <div class="section" id="sec-download">
+    <div class="card">
+      <h2>Gehäuse fertig</h2>
+      <p style="color:var(--muted);font-size:0.88rem;margin-bottom:24px">
+        Shell (Schale) und Lid (Deckel) sind bereit zum Download. Beide Teile sind FDM-optimiert
+        (45°-Fasen, Heat-Set-Kernlöcher, Material-Shrinkage-Ausgleich auf dem Deckel).
+      </p>
+      <div class="dl-grid" id="dl-grid"></div>
+    </div>
+    <div style="text-align:center;margin-top:12px">
+      <button class="btn btn-secondary" onclick="resetUpload()">Neues Projekt starten</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = '';   // same origin
+  let jobId = null;
+  let analysisData = null;
+
+  // ── Drag & Drop ──────────────────────────────────────────────────────────
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+  dropZone.addEventListener('dragover', e => {
+    e.preventDefault();
+    dropZone.classList.add('dragover');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+
+  // ── Slider <-> number sync ───────────────────────────────────────────────
+  const sliderPairs = [
+    ['inner-height', 'inner-height-val'],
+    ['wall', 'wall-val'],
+    ['tolerance', 'tolerance-val'],
+    ['standoff', 'standoff-val'],
+    ['insert-hole', 'insert-hole-val'],
+    ['floor', 'floor-val'],
+  ];
+  sliderPairs.forEach(([sliderId, numId]) => {
+    const slider = document.getElementById(sliderId);
+    const num    = document.getElementById(numId);
+    slider.addEventListener('input', () => num.value = slider.value);
+    num.addEventListener('input',    () => slider.value = num.value);
+  });
+
+  // ── Upload & analysis ────────────────────────────────────────────────────
+  async function handleFile(file) {
+    if (!file) return;
+    showStatus('info', `Analysiere ${file.name} …`);
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await fetch(`${API}/api/upload`, { method: 'POST', body: fd });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Upload fehlgeschlagen');
+      }
+      analysisData = await res.json();
+      jobId = analysisData.job_id;
+      populateForm(analysisData);
+      setStep(2);
+      showStatus('success',
+        `Platine erkannt: ${analysisData.board_width.toFixed(1)} × ${analysisData.board_height.toFixed(1)} mm · ` +
+        `${analysisData.mounting_holes.length} Befestigungsloch(Löcher) · ` +
+        `${analysisData.io_features.length} I/O-Feature(s)`);
+    } catch (e) {
+      showStatus('error', e.message);
+    }
+  }
+
+  function populateForm(data) {
+    document.getElementById('pcb-dims').textContent =
+      `${data.board_width.toFixed(2)} × ${data.board_height.toFixed(2)} mm`;
+    drawPCB(data);
+
+    // Mounting holes table
+    const holesCard = document.getElementById('card-holes');
+    const holesBody = document.getElementById('holes-tbody');
+    holesBody.innerHTML = '';
+    if (data.mounting_holes.length > 0) {
+      holesCard.style.display = '';
+      data.mounting_holes.forEach((h, i) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" data-hole="${i}" ${h.enabled ? 'checked' : ''} /></td>
+          <td>${h.x.toFixed(2)}</td>
+          <td>${h.y.toFixed(2)}</td>
+          <td>${h.diameter.toFixed(2)}</td>
+          <td><span class="badge badge-blue">Montage</span></td>`;
+        holesBody.appendChild(row);
+      });
+    }
+
+    // I/O features table
+    const ioCard = document.getElementById('card-io');
+    const ioBody = document.getElementById('io-tbody');
+    ioBody.innerHTML = '';
+    if (data.io_features.length > 0) {
+      ioCard.style.display = '';
+      data.io_features.forEach((f, i) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input type="checkbox" data-io="${i}" ${f.enabled ? 'checked' : ''} /></td>
+          <td>${f.label || 'IO_' + (i + 1)}</td>
+          <td><input type="number" data-io-zoffset="${i}" value="${f.z_offset.toFixed(1)}"
+               step="0.5" style="width:70px" /> mm</td>
+          <td><input type="number" data-io-height="${i}" value="${f.cutout_height.toFixed(1)}"
+               step="0.5" min="3" style="width:70px" /> mm</td>
+          <td>${f.width.toFixed(1)} mm</td>`;
+        ioBody.appendChild(row);
+      });
+    }
+  }
+
+  // ── PCB canvas preview ───────────────────────────────────────────────────
+  function drawPCB(data) {
+    const canvas = document.getElementById('pcb-canvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pad = 40;
+    const scaleX = (W - 2 * pad) / data.board_width;
+    const scaleY = (H - 2 * pad) / data.board_height;
+    const scale = Math.min(scaleX, scaleY);
+    const ox = (W - data.board_width * scale) / 2;
+    const oy = (H - data.board_height * scale) / 2;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Board outline fill
+    ctx.fillStyle = '#0a2a1a';
+    ctx.strokeStyle = '#22c55e';
+    ctx.lineWidth = 1.5;
+    if (data.outline_points.length > 1) {
+      ctx.beginPath();
+      ctx.moveTo(ox + data.outline_points[0][0] * scale,
+                 oy + data.outline_points[0][1] * scale);
+      data.outline_points.forEach(([x, y]) =>
+        ctx.lineTo(ox + x * scale, oy + y * scale));
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      // Fallback rectangle
+      ctx.fillRect(ox, oy, data.board_width * scale, data.board_height * scale);
+      ctx.strokeRect(ox, oy, data.board_width * scale, data.board_height * scale);
+    }
+
+    // Mounting holes
+    data.mounting_holes.forEach(h => {
+      const hx = ox + h.x * scale;
+      const hy = oy + h.y * scale;
+      const r = Math.max(3, h.diameter * scale / 2);
+      ctx.beginPath();
+      ctx.arc(hx, hy, r, 0, Math.PI * 2);
+      ctx.fillStyle = '#1d4ed8';
+      ctx.strokeStyle = '#60a5fa';
+      ctx.lineWidth = 1;
+      ctx.fill();
+      ctx.stroke();
+    });
+
+    // I/O features
+    data.io_features.forEach(f => {
+      const fx = ox + f.x * scale - (f.width * scale) / 2;
+      const fy = oy + f.y * scale - (f.height * scale) / 2;
+      ctx.fillStyle = 'rgba(245,158,11,0.25)';
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1;
+      ctx.fillRect(fx, fy, f.width * scale, f.height * scale);
+      ctx.strokeRect(fx, fy, f.width * scale, f.height * scale);
+    });
+
+    // Legend
+    ctx.fillStyle = '#22c55e'; ctx.font = '11px sans-serif';
+    ctx.fillText('● Montageloch', pad, H - 14);
+    ctx.fillStyle = '#f59e0b';
+    ctx.fillText('■ I/O-Feature', pad + 110, H - 14);
+  }
+
+  // ── Generate ─────────────────────────────────────────────────────────────
+  async function generateEnclosure() {
+    const btn = document.getElementById('btn-generate');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Wird berechnet …';
+    showStatus('info', 'CAD-Kernel generiert Gehäuse …');
+
+    const mountingHoles = (analysisData.mounting_holes || []).map((h, i) => {
+      const cb = document.querySelector(`input[data-hole="${i}"]`);
+      return { ...h, enabled: cb ? cb.checked : h.enabled };
+    });
+    const ioFeatures = (analysisData.io_features || []).map((f, i) => {
+      const cb      = document.querySelector(`input[data-io="${i}"]`);
+      const zInput  = document.querySelector(`input[data-io-zoffset="${i}"]`);
+      const hInput  = document.querySelector(`input[data-io-height="${i}"]`);
+      return {
+        ...f,
+        enabled:       cb     ? cb.checked              : f.enabled,
+        z_offset:      zInput ? parseFloat(zInput.value) : f.z_offset,
+        cutout_height: hInput ? parseFloat(hInput.value) : f.cutout_height,
+      };
+    });
+
+    const payload = {
+      job_id:               jobId,
+      inner_height:         parseFloat(document.getElementById('inner-height-val').value),
+      wall_thickness:       parseFloat(document.getElementById('wall-val').value),
+      tolerance:            parseFloat(document.getElementById('tolerance-val').value),
+      pcb_standoff_height:  parseFloat(document.getElementById('standoff-val').value),
+      insert_hole_diameter: parseFloat(document.getElementById('insert-hole-val').value),
+      floor_thickness:      parseFloat(document.getElementById('floor-val').value),
+      mounting_holes:       mountingHoles,
+      io_features:          ioFeatures,
+    };
+
+    try {
+      const res = await fetch(`${API}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Generierung fehlgeschlagen');
+      }
+      const result = await res.json();
+      buildDownloadGrid(result.files);
+      setStep(3);
+      showStatus('success', 'Gehäuse erfolgreich generiert! Dateien bereit zum Download.');
+    } catch (e) {
+      showStatus('error', e.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Gehäuse generieren';
+    }
+  }
+
+  function buildDownloadGrid(files) {
+    const grid = document.getElementById('dl-grid');
+    grid.innerHTML = '';
+    const icons = { STL: '&#128663;', STEP: '&#127993;' };
+    const descs = {
+      'shell.stl':  'Schale · FDM-druckfertig',
+      'shell.step': 'Schale · CAD-editierbar',
+      'lid.stl':    'Deckel · FDM-druckfertig',
+      'lid.step':   'Deckel · CAD-editierbar',
+    };
+    files.forEach(f => {
+      const div = document.createElement('div');
+      div.className = 'dl-item';
+      div.innerHTML = `
+        <div class="file-icon">${icons[f.format] || '&#128196;'}</div>
+        <div class="file-name">${f.name}</div>
+        <div class="file-desc">${descs[f.name] || f.format}</div>
+        <a href="${f.url}" download="${f.name}" class="btn btn-download" style="width:100%;justify-content:center">
+          Download
+        </a>`;
+      grid.appendChild(div);
+    });
+  }
+
+  // ── Utilities ─────────────────────────────────────────────────────────────
+  function setStep(n) {
+    [1, 2, 3].forEach(i => {
+      const step = document.getElementById(`step${i}`);
+      const sec  = document.getElementById(['', 'sec-upload', 'sec-params', 'sec-download'][i]);
+      step.className = 'step ' + (i < n ? 'done' : i === n ? 'active' : '');
+      sec.className  = 'section ' + (i === n ? 'visible' : '');
+    });
+  }
+
+  function showStatus(type, msg) {
+    const bar = document.getElementById('status-bar');
+    bar.className = `${type}`;
+    bar.textContent = msg;
+    bar.style.display = 'block';
+  }
+
+  function resetUpload() {
+    jobId = null;
+    analysisData = null;
+    fileInput.value = '';
+    setStep(1);
+    document.getElementById('status-bar').style.display = 'none';
+  }
+</script>
+</body>
+</html>
